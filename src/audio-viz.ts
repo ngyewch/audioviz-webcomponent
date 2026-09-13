@@ -1,5 +1,5 @@
 import {LitElement, html, css, TemplateResult, PropertyValues} from 'lit';
-import {customElement, query} from 'lit/decorators.js';
+import {customElement, property, query} from 'lit/decorators.js';
 import throttle from 'throttleit';
 
 import {defaultColors} from './colors.js';
@@ -15,11 +15,17 @@ export class AudioVizElement extends LitElement {
             display: block;
         }
 
-        #canvas {
+        .container, #canvas {
             width: 100%;
             height: 100%;
         }
     `;
+
+    @property({type: Number, hasChanged: () => false})
+    public minDb: number = 0;
+
+    @property({type: Number, hasChanged: () => false})
+    public maxDb: number = -120;
 
     @query('#canvas')
     private _canvasElement!: HTMLCanvasElement;
@@ -74,8 +80,10 @@ export class AudioVizElement extends LitElement {
 
     protected render(): TemplateResult {
         return html`
-            <canvas id="canvas"></canvas>
-            <button id="startAudio">Start</button>
+            <div class="container">
+                <canvas id="canvas"></canvas>
+                <button id="startAudio">Start</button>
+            </div>
         `;
     }
 
@@ -114,13 +122,12 @@ export class AudioVizElement extends LitElement {
         this._throttledResize();
 
         const logActualDbRange = throttle((_minDb, _maxDb) => {
-            //console.log('actualDbRange', minDb, maxDb);
+            console.log('actualDbRange', _minDb, _maxDb);
+            console.log('dbRange', this.minDb, this.maxDb);
         }, 100);
         const analyzedData = this.getAnalyzedData();
         if (analyzedData !== undefined) {
-            const minDb = -150;
-            const maxDb = -50;
-            const dbRange = maxDb - minDb;
+            const dbRange = this.maxDb - this.minDb;
             const drawContext = this._canvasElement.getContext('2d');
             if ((drawContext === undefined) || (drawContext === null)) {
                 return;
@@ -138,7 +145,7 @@ export class AudioVizElement extends LitElement {
                 if (isNaN(actualMaxDb) || (value > actualMaxDb)) {
                     actualMaxDb = value;
                 }
-                let normalizedValue = (value - minDb) / dbRange;
+                let normalizedValue = (value - this.minDb) / dbRange;
                 if (normalizedValue < 0) {
                     normalizedValue = 0;
                 }

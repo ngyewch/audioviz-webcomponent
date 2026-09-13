@@ -15,6 +15,25 @@
     </style>
 </head>
 <body>
-<audio-viz class="audioviz"></audio-viz>
+<div>
+    <input type="range" min="-150" max="0" value="-50" id="minDb">
+</div>
+<div>
+    <input type="range" min="-150" max="0" value="0" id="maxDb">
+</div>
+<div>
+    <audio-viz id="test" class="audioviz" minDb="-150" maxDb="-50"></audio-viz>
+</div>
+<script>
+    const minDbEl = document.querySelector('#minDb');
+    const maxDbEl = document.querySelector('#maxDb');
+    const testEl = document.querySelector('#test');
+    minDbEl.addEventListener('change', (e) => {
+        testEl.minDb = minDbEl.value;
+    });
+    maxDbEl.addEventListener('change', (e) => {
+        testEl.maxDb = maxDbEl.value;
+    });
+</script>
 </body>
 </html>
