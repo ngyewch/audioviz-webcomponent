@@ -1,0 +1,22 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["./src/index.ts"],
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeNotDocumented": false,
+  "out": "build/gh-pages/typedoc",
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": true
+  },
+  "externalSymbolLinkMappings": {
+    "lit": {
+      "LitElement": "https://lit.dev/docs/api/LitElement/",
+      "css": "https://lit.dev/docs/api/styles/#css"
+    },
+    "@lit/reactive-element": {
+      "PropertyDeclaration": "https://lit.dev/docs/api/ReactiveElement/"
+    }
+  }
+}

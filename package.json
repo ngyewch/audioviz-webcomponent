@@ -1,0 +1,55 @@
+{
+  "name": "@ngyewch/audioviz-webcomponent",
+  "version": "0.1.0",
+  "description": "AudioViz web component",
+  "keywords": [
+    "audio",
+    "visualization",
+    "web-component"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ngyewch/audioviz-webcomponent.git"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/audioviz-webcomponent.js",
+      "types": "./dist/audioviz-webcomponents.d.ts"
+    }
+  },
+  "module": "./dist/audioviz-webcomponent.js",
+  "types": "./dist/audioviz-webcomponents.d.ts",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "postbuild": "validate-package-exports --check",
+    "prepublishOnly": "validate-package-exports --check",
+    "typedoc": "typedoc",
+    "lint": "eslint",
+    "knip": "knip"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.10.0",
+    "gh-pages": "6.3.0",
+    "globals": "17.12.0",
+    "knip": "6.35.1",
+    "lit": "3.3.3",
+    "throttleit": "3.0.0",
+    "typedoc": "0.28.20",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.0",
+    "validate-package-exports": "1.4.4",
+    "vite": "8.3.0",
+    "vite-plugin-dts": "5.1.0"
+  },
+  "dependencies": {
+  },
+  "files": [
+    "dist/*"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

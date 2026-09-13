@@ -1,0 +1,9 @@
+[book]
+authors = ["Nick Ng"]
+language = "en"
+title = "@ngyewch/audioviz-webcomponent"
+
+[output.html]
+additional-css = ["custom.css"]
+git-repository-url = "https://github.com/ngyewch/audioviz-webcomponent"
+site-url = "/audioviz-webcomponent/"

@@ -1,0 +1,61 @@
+version: 3
+
+tasks:
+  clean:
+    desc: Clean
+    cmds:
+      - rm -rf build dist
+
+  install:
+    cmds:
+      - pnpm install
+      - pnpm prune
+
+  build:
+    desc: Build
+    deps: [ install ]
+    cmds:
+      - pnpm build
+
+  outdated:
+    desc: Outdated
+    deps: [ install ]
+    aliases: [ dependencyUpdates ]
+    cmds:
+      - pnpm outdated
+
+  site-deploy:
+    desc: Deploy site
+    deps: [ site-build ]
+    cmds:
+      - gh-pages -d build/gh-pages --nojekyll
+
+  site-clean:
+    desc: Clean site
+    cmds:
+      - rm -rf build/gh-pages
+
+  site-build:
+    desc: Build site
+    cmds:
+      - task: site-clean
+      - mkdir -p build/gh-pages
+      - task: site-build-mdbook
+      - task: site-build-typedoc
+
+  site-build-mdbook:
+    desc: Generate mdbook
+    cmds:
+      - mdbook build --dest-dir $(pwd)/build/gh-pages docs/mdbook
+
+  site-build-typedoc:
+    desc: Generate typedoc
+    deps: [ install ]
+    cmds:
+      - pnpm run typedoc
+
+  site-serve:
+    desc: Serve site
+    deps: [ site-build ]
+    cmds:
+      - caddy file-server --listen localhost:8080 --root build/gh-pages
