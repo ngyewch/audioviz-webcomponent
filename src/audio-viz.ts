@@ -2,7 +2,7 @@ import {LitElement, html, css, TemplateResult, PropertyValues} from 'lit';
 import {customElement, query} from 'lit/decorators.js';
 import throttle from 'throttleit';
 
-import {defaultPalette} from './colors.js';
+import {defaultColors} from './colors.js';
 import {AnalyzedData} from './types.js';
 
 /**
@@ -113,8 +113,8 @@ export class AudioVizElement extends LitElement {
 
         this._throttledResize();
 
-        const dump = throttle((minDb, maxDb) => {
-            console.log('actualDbRange', minDb, maxDb);
+        const logActualDbRange = throttle((_minDb, _maxDb) => {
+            //console.log('actualDbRange', minDb, maxDb);
         }, 100);
         const analyzedData = this.getAnalyzedData();
         if (analyzedData !== undefined) {
@@ -138,14 +138,21 @@ export class AudioVizElement extends LitElement {
                 if (isNaN(actualMaxDb) || (value > actualMaxDb)) {
                     actualMaxDb = value;
                 }
-                const normalizedValue = 1 - ((value - minDb) / dbRange);
-                const color = defaultPalette.getColor(normalizedValue);
+                let normalizedValue = (value - minDb) / dbRange;
+                if (normalizedValue < 0) {
+                    normalizedValue = 0;
+                }
+                if (normalizedValue > 1) {
+                    normalizedValue = 1;
+                }
+                const colorIndex = Math.round(normalizedValue * (defaultColors.length - 1));
+                const color = defaultColors[colorIndex];
                 imageData.data[offset] = color.red;
                 imageData.data[offset + 1] = color.green;
                 imageData.data[offset + 2] = color.blue;
                 imageData.data[offset + 3] = (color.alpha / 100) * 255;
             }
-            dump(actualMinDb, actualMaxDb);
+            logActualDbRange(actualMinDb, actualMaxDb);
             drawContext.drawImage(this._canvasElement, -1, 0);
             drawContext.putImageData(imageData, this._canvasElement.width - 1, 0, 0, 0, 1, this._canvasElement.height);
         }
