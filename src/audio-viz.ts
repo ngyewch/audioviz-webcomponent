@@ -1,6 +1,9 @@
-import {LitElement, html, css, TemplateResult} from 'lit';
+import {LitElement, html, css, TemplateResult, PropertyValues} from 'lit';
 import {customElement, query} from 'lit/decorators.js';
 import throttle from 'throttleit';
+
+import {defaultPalette} from './colors.js';
+import {AnalyzedData} from './types.js';
 
 /**
  * Audio visualization web component.
@@ -19,7 +22,10 @@ export class AudioVizElement extends LitElement {
     `;
 
     @query('#canvas')
-    private canvasElement!: HTMLCanvasElement;
+    private _canvasElement!: HTMLCanvasElement;
+
+    @query('#startAudio')
+    private _startAudioElement!: HTMLButtonElement;
 
     private _resizeObserver: ResizeObserver | undefined;
     private _sizeChanged: boolean = false;
@@ -29,6 +35,12 @@ export class AudioVizElement extends LitElement {
 
     private readonly _requestAnimationFrameCallback: FrameRequestCallback;
     private readonly _throttledResize: () => void;
+
+    private _audioContext: AudioContext | undefined;
+    private _audioSource: MediaStreamAudioSourceNode | undefined;
+    private _analyserNode: AnalyserNode | undefined;
+    private _floatTimeDomainData: Float32Array<ArrayBuffer> | undefined;
+    private _floatFrequencyData: Float32Array<ArrayBuffer> | undefined;
 
     constructor() {
         super();
@@ -40,11 +52,11 @@ export class AudioVizElement extends LitElement {
     connectedCallback(): void {
         super.connectedCallback();
         this._resizeObserver = new ResizeObserver(_entries => {
-            if (this.canvasElement) {
-                if ((this._width !== this.canvasElement.clientWidth) || (this._height !== this.canvasElement.clientHeight)) {
+            if (this._canvasElement) {
+                if ((this._width !== this._canvasElement.clientWidth) || (this._height !== this._canvasElement.clientHeight)) {
                     this._sizeChanged = true;
-                    this._width = this.canvasElement.clientWidth;
-                    this._height = this.canvasElement.clientHeight;
+                    this._width = this._canvasElement.clientWidth;
+                    this._height = this._canvasElement.clientHeight;
                 }
             }
         })
@@ -62,24 +74,119 @@ export class AudioVizElement extends LitElement {
 
     protected render(): TemplateResult {
         return html`
-            <canvas id="canvas">
-            </canvas>
+            <canvas id="canvas"></canvas>
+            <button id="startAudio">Start</button>
         `;
+    }
+
+    protected updated(_changedProperties: PropertyValues) {
+        super.updated(_changedProperties);
+        this._startAudioElement.onclick = () => this.startAudio();
+    }
+
+    private getAnalyzedData(): AnalyzedData | undefined {
+        if ((this._audioContext === undefined) || (this._audioSource === undefined) || (this._analyserNode === undefined) || (this._floatTimeDomainData === undefined) || (this._floatFrequencyData === undefined)) {
+            return undefined;
+        }
+        this._analyserNode.getFloatTimeDomainData(this._floatTimeDomainData);
+        this._analyserNode.getFloatFrequencyData(this._floatFrequencyData);
+        let minValue: number = NaN;
+        let maxValue: number = NaN;
+        for (const v of this._floatTimeDomainData) {
+            if (isNaN(minValue) || (v < minValue)) {
+                minValue = v;
+            }
+            if (isNaN(maxValue) || (v > maxValue)) {
+                maxValue = v;
+            }
+        }
+        return {
+            sampleRate: this._audioContext.sampleRate,
+            minValue: minValue,
+            maxValue: maxValue,
+            frequencyData: Array.from(this._floatFrequencyData.values()),
+        };
     }
 
     private updateAnimationFrame(_t: DOMHighResTimeStamp): void {
         this._animationFrameHandle = requestAnimationFrame(this._requestAnimationFrameCallback);
 
         this._throttledResize();
+
+        const dump = throttle((minDb, maxDb) => {
+            console.log('actualDbRange', minDb, maxDb);
+        }, 100);
+        const analyzedData = this.getAnalyzedData();
+        if (analyzedData !== undefined) {
+            const minDb = -150;
+            const maxDb = -50;
+            const dbRange = maxDb - minDb;
+            const drawContext = this._canvasElement.getContext('2d');
+            if ((drawContext === undefined) || (drawContext === null)) {
+                return;
+            }
+            const imageData = drawContext.createImageData(1, analyzedData.frequencyData.length);
+            let actualMinDb = NaN;
+            let actualMaxDb = NaN;
+            for (let i = 0; i < analyzedData.frequencyData.length; i++) {
+                const y = (analyzedData.frequencyData.length - 1) - i;
+                const offset = y * 4;
+                const value = analyzedData.frequencyData[i];
+                if (isNaN(actualMinDb) || (value < actualMinDb)) {
+                    actualMinDb = value;
+                }
+                if (isNaN(actualMaxDb) || (value > actualMaxDb)) {
+                    actualMaxDb = value;
+                }
+                const normalizedValue = 1 - ((value - minDb) / dbRange);
+                const color = defaultPalette.getColor(normalizedValue);
+                imageData.data[offset] = color.red;
+                imageData.data[offset + 1] = color.green;
+                imageData.data[offset + 2] = color.blue;
+                imageData.data[offset + 3] = (color.alpha / 100) * 255;
+            }
+            dump(actualMinDb, actualMaxDb);
+            drawContext.drawImage(this._canvasElement, -1, 0);
+            drawContext.putImageData(imageData, this._canvasElement.width - 1, 0, 0, 0, 1, this._canvasElement.height);
+        }
     }
 
     private resize(): void {
         if (!this._sizeChanged) {
             return;
         }
-        this.canvasElement.width = this._width;
-        this.canvasElement.height = this._height;
+        this._canvasElement.width = this._width;
+        this._canvasElement.height = this._height;
         this._sizeChanged = false;
+    }
+
+    private startAudio(): void {
+        console.log('Starting...');
+
+        if (this._audioContext !== undefined) {
+            this._audioContext.close();
+        }
+        this._audioContext = new AudioContext();
+
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: false,
+            })
+                .then(stream => {
+                    if (this._audioContext === undefined) {
+                        return;
+                    }
+                    this._audioSource = new MediaStreamAudioSourceNode(this._audioContext, {
+                        mediaStream: stream,
+                    })
+                    this._analyserNode = this._audioContext.createAnalyser();
+                    this._analyserNode.fftSize = 1024;
+                    this._floatTimeDomainData = new Float32Array(this._analyserNode.fftSize);
+                    this._floatFrequencyData = new Float32Array(this._analyserNode.frequencyBinCount);
+                    this._audioSource.connect(this._analyserNode);
+                })
+        }
     }
 }
 

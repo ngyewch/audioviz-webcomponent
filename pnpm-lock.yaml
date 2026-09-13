@@ -41,6 +41,9 @@ importers:
       validate-package-exports:
         specifier: 1.4.4
         version: 1.4.4
+      viridis:
+        specifier: 1.7.0
+        version: 1.7.0
       vite:
         specifier: 8.3.0
         version: 8.3.0(jiti@2.7.0)(yaml@2.9.0)
@@ -1694,6 +1697,10 @@ packages:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
     engines: {node: '>= 6.0.0', npm: '>= 3.0.0'}
 
+  smath@3.1.0:
+    resolution: {integrity: sha512-PhDslElD5cLElHb5UkJCRI9b6V8eUmjI8d6Trt1qcIHBjgtN1TfsKuG4v+7/O92AKiT9LSwbxqSz3nsMzaqOzQ==}
+    hasBin: true
+
   smol-toml@1.8.0:
     resolution: {integrity: sha512-kCZr2V3ch9i00x8zXRhjUNVcjG9ijES5dDudkXvUVCT5QlJNQWElSJdZqyPemffHoLNUYwOcou0Fy+ojN0uHSQ==}
     engines: {node: '>= 18'}
@@ -1865,6 +1872,9 @@ packages:
     resolution: {integrity: sha512-nvOylT23d8PkODDcd5X5ESgdFc6JvRBah6cdx5H5fLI2mvYlspwTyROsGnk65plqTeSgVJ2HE3bYO40Q8t2cQQ==}
     engines: {node: '>=22.22.2'}
     hasBin: true
+
+  viridis@1.7.0:
+    resolution: {integrity: sha512-90xKjEci7n4mXm4UXNyQoZAQx5F28fGjcWdZJ26n/Olr7KPhBoIM4QGPppayarf98EOqHEMzq+PPuvWW3pHaTQ==}
 
   vite-plugin-dts@5.1.0:
     resolution: {integrity: sha512-MfLc2G+mXPUDGGxpHQeYbdunavFP9UpT9yxiAsTgUXRxfEd3HqysSAM4E72jhz5eIz3OOexCHkqiVlQq8ok9/A==}
@@ -3621,6 +3631,8 @@ snapshots:
 
   smart-buffer@4.2.0: {}
 
+  smath@3.1.0: {}
+
   smol-toml@1.8.0: {}
 
   socks-proxy-agent@10.1.0:
@@ -3784,6 +3796,10 @@ snapshots:
     transitivePeerDependencies:
       - kerberos
       - supports-color
+
+  viridis@1.7.0:
+    dependencies:
+      smath: 3.1.0
 
   vite-plugin-dts@5.1.0(rolldown@1.0.3)(typescript@6.0.3)(vite@8.3.0(jiti@2.7.0)(yaml@2.9.0)):
     dependencies:
