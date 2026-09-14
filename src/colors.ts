@@ -1,6 +1,6 @@
 import {Color, Gradient, Palette} from 'viridis';
 
-export function getColors(gradient: Gradient): Color[] {
+function getColors(gradient: Gradient): Color[] {
     const colors: Color[] = [];
     for (let i = 0; i < 256; i++) {
         colors.push(gradient.getColor(i, 0, 255));
@@ -9,6 +9,6 @@ export function getColors(gradient: Gradient): Color[] {
     return colors;
 }
 
-export const defaultPalette: Gradient = Palette.Inferno;
+const defaultPalette: Gradient = Palette.Inferno;
 
 export const defaultColors: Color[] = getColors(defaultPalette);
