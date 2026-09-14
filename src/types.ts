@@ -5,6 +5,11 @@ export interface AnalyzedData {
     frequencyData: number[];
 }
 
+export enum VisualizationMode {
+    Waveform,
+    Spectrogram,
+}
+
 export type GetAnalyzedDataFunction = () => AnalyzedData | undefined;
 
 export interface Source {

@@ -4,7 +4,7 @@ import throttle from 'throttleit';
 import {Color} from 'viridis';
 
 import {defaultColors} from './colors.js';
-import {GetAnalyzedDataFunction} from './types.js';
+import {AnalyzedData, GetAnalyzedDataFunction, VisualizationMode} from './types.js';
 
 const minColors = 8;
 
@@ -24,6 +24,9 @@ export class AudioVizElement extends LitElement {
         }
     `;
 
+    @property({type: VisualizationMode})
+    public mode: VisualizationMode = VisualizationMode.Waveform;
+
     @property({type: Array})
     public colors: string[] | undefined = undefined;
 
@@ -40,6 +43,7 @@ export class AudioVizElement extends LitElement {
     private _canvasElement!: HTMLCanvasElement;
 
     private _resizeObserver: ResizeObserver | undefined;
+    private _modeChanged: boolean = false;
     private _sizeChanged: boolean = false;
     private _width: number = 0;
     private _height: number = 0;
@@ -81,7 +85,7 @@ export class AudioVizElement extends LitElement {
         super.disconnectedCallback();
     }
 
-    protected shouldUpdate(_changedProperties: PropertyValues): boolean {
+    protected shouldUpdate(changedProperties: PropertyValues): boolean {
         if ((this.colors !== undefined) && (this.colors.length >= minColors)) {
             const newColors: Color[] = [];
             for (const color of this.colors) {
@@ -90,6 +94,9 @@ export class AudioVizElement extends LitElement {
             this._colors = newColors;
         } else {
             this._colors = defaultColors;
+        }
+        if ((changedProperties.get('mode') !== undefined) && (changedProperties.get('mode') !== null)) {
+            this._modeChanged = true;
         }
         return !this._firstUpdateCompleted;
     }
@@ -112,43 +119,87 @@ export class AudioVizElement extends LitElement {
 
         this._throttledResize();
 
-        const analyzedData = (this.getAnalyzedData !== undefined) ? this.getAnalyzedData() : undefined;
-        if ((analyzedData !== undefined) && (this._colors !== undefined)) {
-            const dbRange = this.maxDb - this.minDb;
-            const drawContext = this._canvasElement.getContext('2d');
-            if ((drawContext === undefined) || (drawContext === null)) {
-                return;
-            }
-            const imageData = drawContext.createImageData(1, analyzedData.frequencyData.length);
-            let actualMinDb = NaN;
-            let actualMaxDb = NaN;
-            for (let i = 0; i < analyzedData.frequencyData.length; i++) {
-                const y = (analyzedData.frequencyData.length - 1) - i;
-                const offset = y * 4;
-                const value = analyzedData.frequencyData[i];
-                if (isNaN(actualMinDb) || (value < actualMinDb)) {
-                    actualMinDb = value;
-                }
-                if (isNaN(actualMaxDb) || (value > actualMaxDb)) {
-                    actualMaxDb = value;
-                }
-                let normalizedValue = (value - this.minDb) / dbRange;
-                if (normalizedValue < 0) {
-                    normalizedValue = 0;
-                }
-                if (normalizedValue > 1) {
-                    normalizedValue = 1;
-                }
-                const colorIndex = Math.round(normalizedValue * (this._colors.length - 1));
-                const color = this._colors[colorIndex];
-                imageData.data[offset] = color.red;
-                imageData.data[offset + 1] = color.green;
-                imageData.data[offset + 2] = color.blue;
-                imageData.data[offset + 3] = (color.alpha / 100) * 255;
-            }
-            drawContext.drawImage(this._canvasElement, -1, 0);
-            drawContext.putImageData(imageData, this._canvasElement.width - 1, 0, 0, 0, 1, this._canvasElement.height);
+        const drawContext = this._canvasElement.getContext('2d');
+        if ((drawContext === undefined) || (drawContext === null)) {
+            return;
         }
+        if (this._modeChanged) {
+            drawContext.clearRect(0, 0, drawContext.canvas.width, drawContext.canvas.height);
+            this._modeChanged = false;
+        }
+
+        const analyzedData = (this.getAnalyzedData !== undefined) ? this.getAnalyzedData() : undefined;
+        if (analyzedData !== undefined) {
+            switch (this.mode) {
+                case VisualizationMode.Waveform:
+                    this.updateWaveform(drawContext, analyzedData);
+                    break;
+                case VisualizationMode.Spectrogram:
+                    this.updateSpectrogram(drawContext, analyzedData);
+                    break;
+            }
+        }
+    }
+
+    private updateWaveform(drawContext: CanvasRenderingContext2D, analyzedData: AnalyzedData): void {
+        drawContext.drawImage(drawContext.canvas, -1, 0);
+
+        const width = drawContext.canvas.width;
+        const height = drawContext.canvas.height;
+        const top = (1 - ((analyzedData.maxValue + 1) / 2)) * (height - 1);
+        const bottom = (1 - ((analyzedData.minValue + 1) / 2)) * (height - 1);
+
+        drawContext.strokeStyle = 'black';
+        drawContext.lineWidth = 1;
+        drawContext.beginPath();
+        drawContext.moveTo(width - 1, 0);
+        drawContext.lineTo(width - 1, height - 1);
+        drawContext.stroke();
+
+        drawContext.strokeStyle = 'white';
+        drawContext.lineWidth = 1;
+        drawContext.beginPath();
+        drawContext.moveTo(width - 1, top);
+        drawContext.lineTo(width - 1, bottom);
+        drawContext.stroke();
+    }
+
+    private updateSpectrogram(drawContext: CanvasRenderingContext2D, analyzedData: AnalyzedData): void {
+        if (this._colors === undefined) {
+            return
+        }
+        const width = drawContext.canvas.width;
+        const height = drawContext.canvas.height;
+        const dbRange = this.maxDb - this.minDb;
+        const imageData = drawContext.createImageData(1, analyzedData.frequencyData.length);
+        let actualMinDb = NaN;
+        let actualMaxDb = NaN;
+        for (let i = 0; i < analyzedData.frequencyData.length; i++) {
+            const y = (analyzedData.frequencyData.length - 1) - i;
+            const offset = y * 4;
+            const value = analyzedData.frequencyData[i];
+            if (isNaN(actualMinDb) || (value < actualMinDb)) {
+                actualMinDb = value;
+            }
+            if (isNaN(actualMaxDb) || (value > actualMaxDb)) {
+                actualMaxDb = value;
+            }
+            let normalizedValue = (value - this.minDb) / dbRange;
+            if (normalizedValue < 0) {
+                normalizedValue = 0;
+            }
+            if (normalizedValue > 1) {
+                normalizedValue = 1;
+            }
+            const colorIndex = Math.round(normalizedValue * (this._colors.length - 1));
+            const color = this._colors[colorIndex];
+            imageData.data[offset] = color.red;
+            imageData.data[offset + 1] = color.green;
+            imageData.data[offset + 2] = color.blue;
+            imageData.data[offset + 3] = (color.alpha / 100) * 255;
+        }
+        drawContext.drawImage(drawContext.canvas, -1, 0);
+        drawContext.putImageData(imageData, width - 1, 0, 0, 0, 1, height);
     }
 
     private resize(): void {

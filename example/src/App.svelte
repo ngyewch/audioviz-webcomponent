@@ -2,10 +2,11 @@
     import {onDestroy, onMount} from 'svelte';
     import DualRangeInput from '@stanko/dual-range-input';
     import {Palette, type PaletteName} from 'viridis';
-    import {AudioVizElement, type AnalyzedData} from 'audioviz-webcomponent';
+    import {type AnalyzedData} from 'audioviz-webcomponent';
 
     import {getColors} from './colors.js';
     import {LocalSource} from './localSource.js';
+    import {VisualizationMode} from "../../src/types";
 
     const rangeMin = -150;
     const rangeMax = 0;
@@ -16,6 +17,7 @@
     let maxDbEl = $state<HTMLInputElement>();
     let minDb = $state<number>(-150);
     let maxDb = $state<number>(-50);
+    let mode = $state<VisualizationMode>(VisualizationMode.Spectrogram);
     let colorMapName = $state<PaletteName>('Inferno');
     let colors = $derived.by(() => {
         const colors = getColors(Palette[colorMapName], 256);
@@ -67,37 +69,72 @@
 
 <div class="spectrograms-container">
     <div class="box">
-        <div>
-            <div class="select">
-                <select bind:value={colorMapName}>
-                    <option>Viridis</option>
-                    <option>Inferno</option>
-                    <option>Magma</option>
-                    <option>Plasma</option>
-                    <option>Grayscale</option>
-                </select>
+        <div class="field is-horizontal">
+            <div class="field-label is-normal">
+                <label class="label" for="mode">Mode</label>
+            </div>
+            <div class="field-body">
+                <div class="field">
+                    <div class="select">
+                        <select id="mode" bind:value={mode}>
+                            <option value={VisualizationMode.Waveform}>waveform</option>
+                            <option value={VisualizationMode.Spectrogram}>spectrogram</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
-        <div>
-            <div class="dual-range-input">
-                <input bind:this={minDbEl} type="range" min={rangeMin} max={rangeMax} step="1" bind:value={minDb}
-                       id="min"/>
-                <input bind:this={maxDbEl} type="range" min={rangeMin} max={rangeMax} step="1" bind:value={maxDb}
-                       id="max"/>
+        <div class="field is-horizontal">
+            <div class="field-label is-normal">
+                <label class="label" for="palette">Palette</label>
             </div>
-            <div class="db-range-values">
-                <div>{rangeMin}</div>
-                <div class="description">{minDb} to {maxDb} dB</div>
-                <div>{rangeMax}</div>
+            <div class="field-body">
+                <div class="field">
+                    <div class="select">
+                        <select id="palette" bind:value={colorMapName}>
+                            <option>Viridis</option>
+                            <option>Inferno</option>
+                            <option>Magma</option>
+                            <option>Plasma</option>
+                            <option>Grayscale</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
-        <div>
-            <button class="button" onclick={start} class:is-hidden={started}>Start</button>
-            <button class="button" onclick={stop} class:is-hidden={!started}>Stop</button>
+        <div class="field is-horizontal">
+            <div class="field-label is-normal">
+                <label class="label" for="mode">Palette</label>
+            </div>
+            <div class="field-body">
+                <div class="field">
+                    <div class="dual-range-input">
+                        <input bind:this={minDbEl} type="range" min={rangeMin} max={rangeMax} step="1"
+                               bind:value={minDb}
+                               id="min"/>
+                        <input bind:this={maxDbEl} type="range" min={rangeMin} max={rangeMax} step="1"
+                               bind:value={maxDb}
+                               id="max"/>
+                    </div>
+                    <div class="db-range-values">
+                        <div>{rangeMin}</div>
+                        <div class="description">{minDb} to {maxDb} dB</div>
+                        <div>{rangeMax}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="field is-horizontal">
+            <div class="field-label is-normal">
+            </div>
+            <div class="field-body">
+                <button class="button" onclick={start} class:is-hidden={started}>Start</button>
+                <button class="button" onclick={stop} class:is-hidden={!started}>Stop</button>
+            </div>
         </div>
     </div>
     <div class="box">
-        <audio-viz class="audioviz" colors={colors} minDb={minDb} maxDb={maxDb}
+        <audio-viz class="audioviz" colors={colors} minDb={minDb} maxDb={maxDb} mode={mode}
                    getAnalyzedData={() => getAnalyzedData()}></audio-viz>
     </div>
 </div>
@@ -118,5 +155,10 @@
     .db-range-values .description {
         text-align: center;
         flex-grow: 1;
+    }
+
+    .audioviz {
+        width: 100%;
+        height: 320px;
     }
 </style>
