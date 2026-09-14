@@ -1,9 +1,12 @@
 import {LitElement, html, css, TemplateResult, PropertyValues} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 import throttle from 'throttleit';
+import {Color} from 'viridis';
 
 import {defaultColors} from './colors.js';
 import {AnalyzedData} from './types.js';
+
+const minColors = 8;
 
 /**
  * Audio visualization web component.
@@ -21,10 +24,13 @@ export class AudioVizElement extends LitElement {
         }
     `;
 
-    @property({type: Number, hasChanged: () => false})
+    @property({type: Array})
+    public colors: string[] | undefined = undefined;
+
+    @property({type: Number})
     public minDb: number = 0;
 
-    @property({type: Number, hasChanged: () => false})
+    @property({type: Number})
     public maxDb: number = -120;
 
     @query('#canvas')
@@ -42,6 +48,8 @@ export class AudioVizElement extends LitElement {
     private readonly _requestAnimationFrameCallback: FrameRequestCallback;
     private readonly _throttledResize: () => void;
 
+    private _firstUpdateCompleted: boolean = false;
+    private _colors: Color[] | undefined = undefined;
     private _audioContext: AudioContext | undefined;
     private _audioSource: MediaStreamAudioSourceNode | undefined;
     private _analyserNode: AnalyserNode | undefined;
@@ -78,6 +86,19 @@ export class AudioVizElement extends LitElement {
         super.disconnectedCallback();
     }
 
+    protected shouldUpdate(_changedProperties: PropertyValues): boolean {
+        if ((this.colors !== undefined) && (this.colors.length >= minColors)) {
+            const newColors: Color[] = [];
+            for (const color of this.colors) {
+                newColors.push(Color.hex(color));
+            }
+            this._colors = newColors;
+        } else {
+            this._colors = defaultColors;
+        }
+        return !this._firstUpdateCompleted;
+    }
+
     protected render(): TemplateResult {
         return html`
             <div class="container">
@@ -85,6 +106,11 @@ export class AudioVizElement extends LitElement {
                 <button id="startAudio">Start</button>
             </div>
         `;
+    }
+
+    protected firstUpdated(_changedProperties: PropertyValues) {
+        super.firstUpdated(_changedProperties);
+        this._firstUpdateCompleted = true
     }
 
     protected updated(_changedProperties: PropertyValues) {
@@ -122,11 +148,11 @@ export class AudioVizElement extends LitElement {
         this._throttledResize();
 
         const logActualDbRange = throttle((_minDb, _maxDb) => {
-            console.log('actualDbRange', _minDb, _maxDb);
-            console.log('dbRange', this.minDb, this.maxDb);
+            //console.log('actualDbRange', _minDb, _maxDb);
+            //console.log('dbRange', this.minDb, this.maxDb);
         }, 100);
         const analyzedData = this.getAnalyzedData();
-        if (analyzedData !== undefined) {
+        if ((analyzedData !== undefined) && (this._colors !== undefined)) {
             const dbRange = this.maxDb - this.minDb;
             const drawContext = this._canvasElement.getContext('2d');
             if ((drawContext === undefined) || (drawContext === null)) {
@@ -152,8 +178,8 @@ export class AudioVizElement extends LitElement {
                 if (normalizedValue > 1) {
                     normalizedValue = 1;
                 }
-                const colorIndex = Math.round(normalizedValue * (defaultColors.length - 1));
-                const color = defaultColors[colorIndex];
+                const colorIndex = Math.round(normalizedValue * (this._colors.length - 1));
+                const color = this._colors[colorIndex];
                 imageData.data[offset] = color.red;
                 imageData.data[offset + 1] = color.green;
                 imageData.data[offset + 2] = color.blue;
