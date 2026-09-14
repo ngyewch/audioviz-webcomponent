@@ -28,7 +28,7 @@ tasks:
     desc: Deploy site
     deps: [ site-build ]
     cmds:
-      - gh-pages -d build/gh-pages --nojekyll
+      - pnpm run site-publish
 
   site-clean:
     desc: Clean site

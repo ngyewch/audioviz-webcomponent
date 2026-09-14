@@ -27,7 +27,8 @@
     "prepublishOnly": "validate-package-exports --check",
     "typedoc": "typedoc",
     "lint": "eslint",
-    "knip": "knip"
+    "knip": "knip",
+    "site-publish": "gh-pages -d build/gh-pages --nojekyll"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
