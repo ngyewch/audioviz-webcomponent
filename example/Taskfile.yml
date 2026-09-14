@@ -18,6 +18,13 @@ tasks:
       - pnpm run check
       - pnpm run build
 
+  build-for-site:
+    desc: Build for site
+    deps: [ install ]
+    cmds:
+      - pnpm run check
+      - pnpm run build-for-site
+
   run:
     desc: Run
     deps: [ install ]

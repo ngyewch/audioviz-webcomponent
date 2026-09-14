@@ -8,8 +8,6 @@ Audio visualization web component.
 
 [Typedoc](./typedoc/)
 
-## Playground
+## Demo
 
-<div>
-{{#include playground.html}}
-</div>
+<iframe src="example/index.html" width="100%" height="800" style="border: none;"></iframe>
