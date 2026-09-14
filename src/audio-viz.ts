@@ -4,7 +4,7 @@ import throttle from 'throttleit';
 import {Color} from 'viridis';
 
 import {defaultColors} from './colors.js';
-import {AnalyzedData} from './types.js';
+import {GetAnalyzedDataFunction} from './types.js';
 
 const minColors = 8;
 
@@ -33,11 +33,11 @@ export class AudioVizElement extends LitElement {
     @property({type: Number})
     public maxDb: number = -120;
 
+    @property({type: Function})
+    public getAnalyzedData: GetAnalyzedDataFunction | undefined = undefined;
+
     @query('#canvas')
     private _canvasElement!: HTMLCanvasElement;
-
-    @query('#startAudio')
-    private _startAudioElement!: HTMLButtonElement;
 
     private _resizeObserver: ResizeObserver | undefined;
     private _sizeChanged: boolean = false;
@@ -50,11 +50,6 @@ export class AudioVizElement extends LitElement {
 
     private _firstUpdateCompleted: boolean = false;
     private _colors: Color[] | undefined = undefined;
-    private _audioContext: AudioContext | undefined;
-    private _audioSource: MediaStreamAudioSourceNode | undefined;
-    private _analyserNode: AnalyserNode | undefined;
-    private _floatTimeDomainData: Float32Array<ArrayBuffer> | undefined;
-    private _floatFrequencyData: Float32Array<ArrayBuffer> | undefined;
 
     constructor() {
         super();
@@ -103,7 +98,6 @@ export class AudioVizElement extends LitElement {
         return html`
             <div class="container">
                 <canvas id="canvas"></canvas>
-                <button id="startAudio">Start</button>
             </div>
         `;
     }
@@ -113,45 +107,12 @@ export class AudioVizElement extends LitElement {
         this._firstUpdateCompleted = true
     }
 
-    protected updated(_changedProperties: PropertyValues) {
-        super.updated(_changedProperties);
-        this._startAudioElement.onclick = () => this.startAudio();
-    }
-
-    private getAnalyzedData(): AnalyzedData | undefined {
-        if ((this._audioContext === undefined) || (this._audioSource === undefined) || (this._analyserNode === undefined) || (this._floatTimeDomainData === undefined) || (this._floatFrequencyData === undefined)) {
-            return undefined;
-        }
-        this._analyserNode.getFloatTimeDomainData(this._floatTimeDomainData);
-        this._analyserNode.getFloatFrequencyData(this._floatFrequencyData);
-        let minValue: number = NaN;
-        let maxValue: number = NaN;
-        for (const v of this._floatTimeDomainData) {
-            if (isNaN(minValue) || (v < minValue)) {
-                minValue = v;
-            }
-            if (isNaN(maxValue) || (v > maxValue)) {
-                maxValue = v;
-            }
-        }
-        return {
-            sampleRate: this._audioContext.sampleRate,
-            minValue: minValue,
-            maxValue: maxValue,
-            frequencyData: Array.from(this._floatFrequencyData.values()),
-        };
-    }
-
     private updateAnimationFrame(_t: DOMHighResTimeStamp): void {
         this._animationFrameHandle = requestAnimationFrame(this._requestAnimationFrameCallback);
 
         this._throttledResize();
 
-        const logActualDbRange = throttle((_minDb, _maxDb) => {
-            //console.log('actualDbRange', _minDb, _maxDb);
-            //console.log('dbRange', this.minDb, this.maxDb);
-        }, 100);
-        const analyzedData = this.getAnalyzedData();
+        const analyzedData = (this.getAnalyzedData !== undefined) ? this.getAnalyzedData() : undefined;
         if ((analyzedData !== undefined) && (this._colors !== undefined)) {
             const dbRange = this.maxDb - this.minDb;
             const drawContext = this._canvasElement.getContext('2d');
@@ -185,7 +146,6 @@ export class AudioVizElement extends LitElement {
                 imageData.data[offset + 2] = color.blue;
                 imageData.data[offset + 3] = (color.alpha / 100) * 255;
             }
-            logActualDbRange(actualMinDb, actualMaxDb);
             drawContext.drawImage(this._canvasElement, -1, 0);
             drawContext.putImageData(imageData, this._canvasElement.width - 1, 0, 0, 0, 1, this._canvasElement.height);
         }
@@ -198,35 +158,6 @@ export class AudioVizElement extends LitElement {
         this._canvasElement.width = this._width;
         this._canvasElement.height = this._height;
         this._sizeChanged = false;
-    }
-
-    private startAudio(): void {
-        console.log('Starting...');
-
-        if (this._audioContext !== undefined) {
-            this._audioContext.close();
-        }
-        this._audioContext = new AudioContext();
-
-        if (navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: false,
-            })
-                .then(stream => {
-                    if (this._audioContext === undefined) {
-                        return;
-                    }
-                    this._audioSource = new MediaStreamAudioSourceNode(this._audioContext, {
-                        mediaStream: stream,
-                    })
-                    this._analyserNode = this._audioContext.createAnalyser();
-                    this._analyserNode.fftSize = 1024;
-                    this._floatTimeDomainData = new Float32Array(this._analyserNode.fftSize);
-                    this._floatFrequencyData = new Float32Array(this._analyserNode.frequencyBinCount);
-                    this._audioSource.connect(this._analyserNode);
-                })
-        }
     }
 }
 

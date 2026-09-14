@@ -5,6 +5,8 @@ export interface AnalyzedData {
     frequencyData: number[];
 }
 
+export type GetAnalyzedDataFunction = () => AnalyzedData | undefined;
+
 export interface Source {
-    getAnalyzedData(): AnalyzedData;
+    getAnalyzedData(): AnalyzedData | undefined;
 }
