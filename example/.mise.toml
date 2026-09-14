@@ -1,0 +1,7 @@
+[tools]
+node = '24.21.0'
+pnpm = '12.4.1'
+task = '3.53.1'
+'github:mdomke/git-semver' = '6.10.0'
+'npm:@bufbuild/protoc-gen-es' = '2.14.1'
+'npm:@connectrpc/protoc-gen-connect-query' = '2.3.1'

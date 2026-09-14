@@ -1,0 +1,35 @@
+{
+  "name": "example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
+    "lint": "eslint",
+    "knip": "knip"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@sveltejs/vite-plugin-svelte": "7.3.0",
+    "@tsconfig/svelte": "5.0.8",
+    "@types/node": "24.13.3",
+    "eslint": "10.10.0",
+    "globals": "17.12.0",
+    "knip": "6.35.1",
+    "sass-embedded": "1.104.0",
+    "svelte-check": "4.7.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.0",
+    "vite": "8.2.2"
+  },
+  "dependencies": {
+    "@stanko/dual-range-input": "1.0.1",
+    "audioviz-webcomponent": "link:..",
+    "bulma": "1.0.4",
+    "svelte": "5.57.0",
+    "viridis": "1.7.0"
+  }
+}

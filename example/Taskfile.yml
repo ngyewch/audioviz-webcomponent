@@ -1,0 +1,44 @@
+version: 3
+
+tasks:
+  clean:
+    desc: Clean
+    cmds:
+      - rm -rf dist
+
+  install:
+    cmds:
+      - pnpm install
+      - pnpm prune
+
+  build:
+    desc: Build
+    deps: [ install ]
+    cmds:
+      - pnpm run check
+      - pnpm run build
+
+  run:
+    desc: Run
+    deps: [ install ]
+    cmds:
+      - pnpm run check
+      - pnpm run dev
+
+  check:
+    desc: Check
+    cmds:
+      - pnpm run check
+      - cmd: pnpm run lint
+        ignore_error: true
+      - pnpm run knip
+
+  outdated:
+    desc: Outdated
+    aliases: [ dependencyUpdates ]
+    deps: [ install ]
+    cmds:
+      - cmd: pnpm outdated
+        ignore_error: true
+      - cmd: pnpm outdated --compatible
+        ignore_error: true
