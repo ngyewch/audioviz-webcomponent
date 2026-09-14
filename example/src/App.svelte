@@ -2,11 +2,9 @@
     import {onDestroy, onMount} from 'svelte';
     import DualRangeInput from '@stanko/dual-range-input';
     import {Palette, type PaletteName} from 'viridis';
-    import {type AnalyzedData} from 'audioviz-webcomponent';
+    import {type AnalyzedData, LocalSource, VisualizationMode} from 'audioviz-webcomponent';
 
     import {getColors} from './colors.js';
-    import {LocalSource} from './localSource.js';
-    import {VisualizationMode} from "../../src/types";
 
     const rangeMin = -150;
     const rangeMax = 0;

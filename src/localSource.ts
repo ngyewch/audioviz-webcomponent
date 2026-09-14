@@ -1,4 +1,4 @@
-import {type AnalyzedData, type Source} from 'audioviz-webcomponent';
+import {type AnalyzedData, type Source} from './types.js';
 
 export class LocalSource implements Source {
     private readonly audioSource: MediaStreamAudioSourceNode;
@@ -6,7 +6,7 @@ export class LocalSource implements Source {
     private readonly floatTimeDomainData: Float32Array<ArrayBuffer>;
     private readonly floatFrequencyData: Float32Array<ArrayBuffer>;
 
-    constructor(private readonly audioContext: AudioContext, private readonly mediaStream: MediaStream, private readonly fftSize: number) {
+    constructor(private readonly audioContext: AudioContext, readonly mediaStream: MediaStream, readonly fftSize: number) {
         this.audioSource = new MediaStreamAudioSourceNode(audioContext, {
             mediaStream: mediaStream,
         })
