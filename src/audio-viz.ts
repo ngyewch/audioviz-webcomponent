@@ -199,7 +199,18 @@ export class AudioVizElement extends LitElement {
             imageData.data[offset + 3] = (color.alpha / 100) * 255;
         }
         drawContext.drawImage(drawContext.canvas, -1, 0);
-        drawContext.putImageData(imageData, width - 1, 0, 0, 0, 1, height);
+        if (height === imageData.height) {
+            drawContext.putImageData(imageData, width - 1, 0);
+        } else {
+            const offscreenCanvas = document.createElement('canvas');
+            offscreenCanvas.width = imageData.width;
+            offscreenCanvas.height = imageData.height;
+            const offscreenCtx = offscreenCanvas.getContext('2d');
+            if (offscreenCtx !== null) {
+                offscreenCtx.putImageData(imageData, 0, 0);
+                drawContext.drawImage(offscreenCanvas, width - 1, 0, 1, height);
+            }
+        }
     }
 
     private resize(): void {
