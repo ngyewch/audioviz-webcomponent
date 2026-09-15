@@ -222,9 +222,3 @@ export class AudioVizElement extends LitElement {
         this._sizeChanged = false;
     }
 }
-
-declare global {
-    interface HTMLElementTagNameMap {
-        "audio-viz": AudioVizElement;
-    }
-}
