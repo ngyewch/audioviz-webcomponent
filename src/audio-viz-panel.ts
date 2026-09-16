@@ -7,6 +7,12 @@ import {type RemoteSources, type Source, VisualizationMode} from './types.js';
 import {AudioVizSettingsElement} from './audio-viz-settings.js';
 import {WebSocketSource} from "./wsSource";
 
+interface SourceEntry {
+    label: string;
+    source: Source;
+    closer: () => void;
+}
+
 /**
  * Audio visualization panel web component.
  */
@@ -59,15 +65,13 @@ export class AudioVizPanelElement extends LitElement {
     public elementHeight: string = '320px';
 
     @state()
-    private _remoteSources: RemoteSources | undefined;
-
-    @state()
-    private _sources: Source[] = [];
+    private _sourceEntries: SourceEntry[] = [];
 
     @query('#settings')
     private _settingsElement!: AudioVizSettingsElement;
 
     private _mutationObserver: MutationObserver | undefined;
+    private _childElements: Element[] = [];
 
     disconnectedCallback(): void {
         if (this._mutationObserver !== undefined) {
@@ -81,20 +85,27 @@ export class AudioVizPanelElement extends LitElement {
         super.willUpdate(changedProperties);
 
         if (changedProperties.has('url')) {
-            this._remoteSources = undefined;
-            this._sources = [];
-            if ((this.url !== undefined && this.url !== '')) {
+            for (const sourceEntry of this._sourceEntries) {
+                sourceEntry.closer();
+            }
+            this._sourceEntries = [];
+            if ((this.url !== undefined) && (this.url !== '')) {
                 ky.get(this.url)
                     .then(response => response.json<RemoteSources>())
                     .then(remoteSources => {
-                        this._remoteSources = remoteSources;
-                        this._sources = [];
+                        this._sourceEntries = [];
                         for (const remoteSource of remoteSources.sources) {
                             switch (remoteSource.type) {
                                 case 'ws':
                                 case 'websocket': {
                                     const source = new WebSocketSource(remoteSource.url);
-                                    this._sources.push(source);
+                                    this._sourceEntries.push({
+                                        label: remoteSource.label,
+                                        source: source,
+                                        closer: () => {
+                                            source.close();
+                                        },
+                                    });
                                     break;
                                 }
                                 default:
@@ -113,21 +124,27 @@ export class AudioVizPanelElement extends LitElement {
         return html`
             <div class="container">
                 <div class="section">
-                    <audio-viz-settings id="settings" mode="${this.mode}"
-                                        minDb="${this.minDb}" maxDb="${this.maxDb}"
-                                        dbRangeMin="${this.dbRangeMin}" dbRangeMax="${this.dbRangeMax}">
+                    <audio-viz-settings id="settings"
+                                        mode="${this.mode}"
+                                        minDb="${this.minDb}"
+                                        maxDb="${this.maxDb}"
+                                        dbRangeMin="${this.dbRangeMin}"
+                                        dbRangeMax="${this.dbRangeMax}">
                     </audio-viz-settings>
                 </div>
                 ${repeat(
-                        this._sources,
-                        (source) => source.getId(),
-                        (source, index) => html`
+                        this._sourceEntries,
+                        (sourceEntry) => sourceEntry.source.getId(),
+                        (sourceEntry, index) => html`
                             <div class="section">
-                                <div>Channel ${index}</div>
-                                <audio-viz id="audioviz-${source.getId()}" mode="${this.mode}"
-                                           minDb="${this.minDb}" maxDb="${this.maxDb}"
+                                <div>${sourceEntry.label}</div>
+                                <audio-viz id="audioviz-${index}"
+                                           mode="${this.mode}"
+                                           minDb="${this.minDb}"
+                                           maxDb="${this.maxDb}"
                                            colors="${this.colors}"
-                                           style="width: 100%; height: ${this.elementHeight};"></audio-viz>
+                                           style="width: 100%; height: ${this.elementHeight};">
+                                </audio-viz>
                             </div>
                         `,
                 )}
@@ -147,9 +164,14 @@ export class AudioVizPanelElement extends LitElement {
                 if (mutation.type === 'attributes') {
                     const attributeName = mutation.attributeName;
                     if (attributeName !== null) {
-                        const attribute = this._settingsElement.attributes.getNamedItem(attributeName);
-                        if (attribute !== null) {
-                            console.log('mutated', attribute.name, attribute.value);
+                        const attributeValue = this._settingsElement.getAttribute(attributeName);
+                        console.log('mutated', attributeName, attributeValue);
+                        for (const childElement of this._childElements) {
+                            if (attributeValue !== null) {
+                                childElement.setAttribute(attributeName, attributeValue);
+                            } else {
+                                childElement.removeAttribute(attributeName);
+                            }
                         }
                     }
                 }
@@ -158,5 +180,14 @@ export class AudioVizPanelElement extends LitElement {
         this._mutationObserver.observe(this._settingsElement, {
             attributes: true,
         });
+
+        const childElements: Element[] = [];
+        for (let i = 0; i < this._sourceEntries.length; i++) {
+            const el = this.renderRoot.querySelector(`#audioviz-${i}`);
+            if (el !== null) {
+                childElements.push(el);
+            }
+        }
+        this._childElements = childElements;
     }
 }
