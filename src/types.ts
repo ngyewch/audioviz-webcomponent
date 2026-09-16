@@ -13,5 +13,6 @@ export enum VisualizationMode {
 export type GetAnalyzedDataFunction = () => AnalyzedData | undefined;
 
 export interface Source {
+    getId(): string;
     getAnalyzedData(): AnalyzedData | undefined;
 }

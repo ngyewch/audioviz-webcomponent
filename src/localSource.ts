@@ -1,12 +1,14 @@
 import {type AnalyzedData, type Source} from './types.js';
 
 export class LocalSource implements Source {
+    private readonly id: string;
     private readonly audioSource: MediaStreamAudioSourceNode;
     private readonly analyserNode: AnalyserNode;
     private readonly floatTimeDomainData: Float32Array<ArrayBuffer>;
     private readonly floatFrequencyData: Float32Array<ArrayBuffer>;
 
     constructor(private readonly audioContext: AudioContext, readonly mediaStream: MediaStream, readonly fftSize: number) {
+        this.id = crypto.randomUUID();
         this.audioSource = new MediaStreamAudioSourceNode(audioContext, {
             mediaStream: mediaStream,
         })
@@ -34,6 +36,10 @@ export class LocalSource implements Source {
     public close(): Promise<void> {
         this.audioSource.disconnect();
         return this.audioContext.close();
+    }
+
+    public getId(): string {
+        return this.id;
     }
 
     public getAnalyzedData(): AnalyzedData | undefined {
