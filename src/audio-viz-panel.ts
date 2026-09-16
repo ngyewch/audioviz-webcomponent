@@ -5,7 +5,8 @@ import ky from 'ky';
 
 import {type RemoteSources, type Source, VisualizationMode} from './types.js';
 import {AudioVizSettingsElement} from './audio-viz-settings.js';
-import {WebSocketSource} from "./wsSource";
+import {WebSocketSource} from './wsSource.js';
+import {AudioVizElement} from './audio-viz.js';
 
 interface SourceEntry {
     label: string;
@@ -98,7 +99,7 @@ export class AudioVizPanelElement extends LitElement {
                             switch (remoteSource.type) {
                                 case 'ws':
                                 case 'websocket': {
-                                    const source = new WebSocketSource(remoteSource.url);
+                                    const source = new WebSocketSource(new URL(remoteSource.url, this.url).href);
                                     this._sourceEntries.push({
                                         label: remoteSource.label,
                                         source: source,
@@ -165,7 +166,6 @@ export class AudioVizPanelElement extends LitElement {
                     const attributeName = mutation.attributeName;
                     if (attributeName !== null) {
                         const attributeValue = this._settingsElement.getAttribute(attributeName);
-                        console.log('mutated', attributeName, attributeValue);
                         for (const childElement of this._childElements) {
                             if (attributeValue !== null) {
                                 childElement.setAttribute(attributeName, attributeValue);
@@ -183,8 +183,9 @@ export class AudioVizPanelElement extends LitElement {
 
         const childElements: Element[] = [];
         for (let i = 0; i < this._sourceEntries.length; i++) {
-            const el = this.renderRoot.querySelector(`#audioviz-${i}`);
+            const el = this.renderRoot.querySelector<AudioVizElement>(`#audioviz-${i}`);
             if (el !== null) {
+                el.getAnalyzedData = () => this._sourceEntries[i].source.getAnalyzedData();
                 childElements.push(el);
             }
         }

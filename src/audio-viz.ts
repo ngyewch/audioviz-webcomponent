@@ -1,4 +1,4 @@
-import {LitElement, html, css, TemplateResult, PropertyValues} from 'lit';
+import {css, html, LitElement, PropertyValues, TemplateResult} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 import throttle from 'throttleit';
 import {Color} from 'viridis';
@@ -24,7 +24,7 @@ export class AudioVizElement extends LitElement {
         }
     `;
 
-    @property({type: VisualizationMode})
+    @property({type: Number})
     public mode: VisualizationMode = VisualizationMode.Waveform;
 
     @property({type: Array})
@@ -86,7 +86,7 @@ export class AudioVizElement extends LitElement {
     }
 
     protected shouldUpdate(changedProperties: PropertyValues): boolean {
-        if ((this.colors !== undefined) && (this.colors.length >= minColors)) {
+        if ((this.colors !== undefined) && (this.colors !== null) && (this.colors.length >= minColors)) {
             const newColors: Color[] = [];
             for (const color of this.colors) {
                 newColors.push(Color.hex(color));
@@ -119,6 +119,10 @@ export class AudioVizElement extends LitElement {
 
         this._throttledResize();
 
+        if (this._canvasElement === undefined) {
+            return;
+        }
+
         const drawContext = this._canvasElement.getContext('2d');
         if ((drawContext === undefined) || (drawContext === null)) {
             return;
@@ -132,9 +136,11 @@ export class AudioVizElement extends LitElement {
         if (analyzedData !== undefined) {
             switch (this.mode) {
                 case VisualizationMode.Waveform:
+                case VisualizationMode.Waveform.valueOf():
                     this.updateWaveform(drawContext, analyzedData);
                     break;
                 case VisualizationMode.Spectrogram:
+                case VisualizationMode.Spectrogram.valueOf():
                     this.updateSpectrogram(drawContext, analyzedData);
                     break;
             }
