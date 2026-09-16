@@ -1,9 +1,9 @@
-import {LitElement, html, css, TemplateResult, PropertyValues, unsafeCSS} from 'lit';
-import {customElement, property, query} from 'lit/decorators.js';
-import DualRangeInput from '@stanko/dual-range-input';
+import {LitElement, html, css, TemplateResult, PropertyValues} from 'lit';
+import {customElement, property, query, state} from 'lit/decorators.js';
+import {repeat} from 'lit/directives/repeat.js';
 
-import dualRangeInputCss from '@stanko/dual-range-input/dist/index.css?inline';
-import {VisualizationMode} from './types.js';
+import {type Source, VisualizationMode} from './types.js';
+import {AudioVizSettingsElement} from './audio-viz-settings.js';
 
 /**
  * Audio visualization panel web component.
@@ -16,19 +16,27 @@ export class AudioVizPanelElement extends LitElement {
                 display: block;
             }
 
-            .container, #canvas {
+            .container {
+                display: flex;
+                flex-direction: column;
                 width: 100%;
-                height: 100%;
+                font-family: sans-serif;
+                gap: 0.5em;
+            }
+
+            .section {
+                padding: 1em;
+                border-radius: 8px;
+                box-shadow: 4px 4px 10px 0 rgba(0, 0, 0, 0.25);
             }
         `,
-        unsafeCSS(dualRangeInputCss),
     ];
 
-    @property({type: VisualizationMode})
-    public mode: VisualizationMode = VisualizationMode.Waveform;
+    @property({type: String})
+    public url: string | undefined = undefined;
 
-    @property({type: Array})
-    public colors: string[] | undefined = undefined;
+    @property({type: VisualizationMode})
+    public mode: VisualizationMode = VisualizationMode.Spectrogram;
 
     @property({type: Number})
     public minDb: number = -120;
@@ -42,17 +50,24 @@ export class AudioVizPanelElement extends LitElement {
     @property({type: Number})
     public dbRangeMax: number = 0;
 
-    @query('#minDb')
-    private _minDbElement!: HTMLInputElement;
+    @property({type: Array})
+    public colors: string[] | undefined = undefined;
 
-    @query('#maxDb')
-    private _maxDbElement!: HTMLInputElement;
+    @property({type: String})
+    public elementHeight: string = '320px';
 
-    private _dualRangeInput: DualRangeInput | undefined;
+    @state()
+    private _sources: Source[] = [];
+
+    @query('#settings')
+    private _settingsElement!: AudioVizSettingsElement;
+
+    private _mutationObserver: MutationObserver | undefined;
 
     disconnectedCallback(): void {
-        if (this._dualRangeInput !== undefined) {
-            this._dualRangeInput.destroy();
+        if (this._mutationObserver !== undefined) {
+            this._mutationObserver.disconnect();
+            this._mutationObserver = undefined;
         }
         super.disconnectedCallback();
     }
@@ -60,21 +75,51 @@ export class AudioVizPanelElement extends LitElement {
     protected render(): TemplateResult {
         return html`
             <div class="container">
-                <div class="settings">
-                    <div class="dbRange">
-                        
-                    </div>
+                <div class="section">
+                    <audio-viz-settings id="settings" mode="${this.mode}"
+                                        minDb="${this.minDb}" maxDb="${this.maxDb}"
+                                        dbRangeMin="${this.dbRangeMin}" dbRangeMax="${this.dbRangeMax}">
+                    </audio-viz-settings>
                 </div>
+                ${repeat(
+                        this._sources,
+                        (source) => source.getId(),
+                        (source, index) => html`
+                            <div class="section">
+                                <div>Channel ${index}</div>
+                                <audio-viz id="audioviz-${source.getId()}" mode="${this.mode}"
+                                           minDb="${this.minDb}" maxDb="${this.maxDb}"
+                                           colors="${this.colors}"
+                                           style="width: 100%; height: ${this.elementHeight};"></audio-viz>
+                            </div>
+                        `,
+                )}
             </div>
         `;
     }
 
-    protected updated(_changedProperties: PropertyValues) {
-        super.updated(_changedProperties);
-        if (this._dualRangeInput !== undefined) {
-            this._dualRangeInput.destroy();
-            this._dualRangeInput = undefined;
+    protected updated(changedProperties: PropertyValues<this>) {
+        super.updated(changedProperties);
+
+        if (this._mutationObserver !== undefined) {
+            this._mutationObserver.disconnect();
+            this._mutationObserver = undefined;
         }
-        this._dualRangeInput = new DualRangeInput(this._minDbElement, this._maxDbElement);
+        this._mutationObserver = new MutationObserver(mutations => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'attributes') {
+                    const attributeName = mutation.attributeName;
+                    if (attributeName !== null) {
+                        const attribute = this._settingsElement.attributes.getNamedItem(attributeName);
+                        if (attribute !== null) {
+                            console.log('mutated', attribute.name, attribute.value);
+                        }
+                    }
+                }
+            }
+        });
+        this._mutationObserver.observe(this._settingsElement, {
+            attributes: true,
+        });
     }
 }
