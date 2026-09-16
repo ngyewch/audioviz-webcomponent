@@ -11,6 +11,9 @@ importers:
       '@eslint/js':
         specifier: 10.0.1
         version: 10.0.1(eslint@10.10.0(jiti@2.7.0))
+      '@stanko/dual-range-input':
+        specifier: 1.0.1
+        version: 1.0.1
       eslint:
         specifier: 10.10.0
         version: 10.10.0(jiti@2.7.0)
@@ -733,6 +736,9 @@ packages:
   '@sigstore/verify@4.1.2':
     resolution: {integrity: sha512-BfD9eLrz3A/DG58aSgfgZYmIR6V9Yw96QVN/frtu2bEH7ctSTk2TDvHU12un3JsDPBTqTNkqkIkucjxljpOFqQ==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
+
+  '@stanko/dual-range-input@1.0.1':
+    resolution: {integrity: sha512-C2mAGg0UHKGUyVhvIpO4Mmk27lpfFXi6fRqIa4vbHj687wLdcBDzcA5yn2pcADQYYmagrjJG/3Ldcl1s3pB3Tg==}
 
   '@tufjs/canonical-json@2.0.0':
     resolution: {integrity: sha512-yVtV8zsdo8qFHe+/3kw81dSLyF7D576A5cCFCi4X7B39tWT7SekaEFUnvnWJHz+9qO7qJTah1JbrDjWKqFtdWA==}
@@ -2553,6 +2559,8 @@ snapshots:
       '@sigstore/bundle': 5.0.0
       '@sigstore/core': 4.0.1
       '@sigstore/protobuf-specs': 0.5.1
+
+  '@stanko/dual-range-input@1.0.1': {}
 
   '@tufjs/canonical-json@2.0.0': {}
 

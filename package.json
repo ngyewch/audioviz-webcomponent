@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@stanko/dual-range-input": "1.0.1",
     "eslint": "10.10.0",
     "gh-pages": "6.3.0",
     "globals": "17.12.0",
