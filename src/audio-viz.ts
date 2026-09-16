@@ -31,10 +31,10 @@ export class AudioVizElement extends LitElement {
     public colors: string[] | undefined = undefined;
 
     @property({type: Number})
-    public minDb: number = 0;
+    public minDb: number = -120;
 
     @property({type: Number})
-    public maxDb: number = -120;
+    public maxDb: number = 0;
 
     @property({type: Function})
     public getAnalyzedData: GetAnalyzedDataFunction | undefined = undefined;
