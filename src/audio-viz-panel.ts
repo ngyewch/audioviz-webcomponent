@@ -1,9 +1,11 @@
 import {LitElement, html, css, TemplateResult, PropertyValues} from 'lit';
 import {customElement, property, query, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
+import ky from 'ky';
 
-import {type Source, VisualizationMode} from './types.js';
+import {type RemoteSources, type Source, VisualizationMode} from './types.js';
 import {AudioVizSettingsElement} from './audio-viz-settings.js';
+import {WebSocketSource} from "./wsSource";
 
 /**
  * Audio visualization panel web component.
@@ -57,6 +59,9 @@ export class AudioVizPanelElement extends LitElement {
     public elementHeight: string = '320px';
 
     @state()
+    private _remoteSources: RemoteSources | undefined;
+
+    @state()
     private _sources: Source[] = [];
 
     @query('#settings')
@@ -70,6 +75,38 @@ export class AudioVizPanelElement extends LitElement {
             this._mutationObserver = undefined;
         }
         super.disconnectedCallback();
+    }
+
+    protected willUpdate(changedProperties: PropertyValues<this>): void {
+        super.willUpdate(changedProperties);
+
+        if (changedProperties.has('url')) {
+            this._remoteSources = undefined;
+            this._sources = [];
+            if ((this.url !== undefined && this.url !== '')) {
+                ky.get(this.url)
+                    .then(response => response.json<RemoteSources>())
+                    .then(remoteSources => {
+                        this._remoteSources = remoteSources;
+                        this._sources = [];
+                        for (const remoteSource of remoteSources.sources) {
+                            switch (remoteSource.type) {
+                                case 'ws':
+                                case 'websocket': {
+                                    const source = new WebSocketSource(remoteSource.url);
+                                    this._sources.push(source);
+                                    break;
+                                }
+                                default:
+                                    throw new Error(`unsupported remote source type ${remoteSource.type}`);
+                            }
+                        }
+                    })
+                    .catch(reason => {
+                        console.error('audio-viz-panel', 'could not get remote sources', reason);
+                    });
+            }
+        }
     }
 
     protected render(): TemplateResult {

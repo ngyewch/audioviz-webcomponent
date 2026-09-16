@@ -1,7 +1,7 @@
 import {AudioVizElement} from './audio-viz.js';
 import {AudioVizPanelElement} from './audio-viz-panel.js';
 import {AudioVizSettingsElement} from './audio-viz-settings.js';
-import {type GetAnalyzedDataFunction, type AnalyzedData, type Source, VisualizationMode} from './types.js';
+import {type GetAnalyzedDataFunction, type AnalyzedData, type Source, VisualizationMode, type RemoteSource, type RemoteSources} from './types.js';
 import {LocalSource} from './localSource.js';
 import {WebSocketSource} from './wsSource.js';
 
@@ -20,6 +20,8 @@ export {
     type AnalyzedData,
     type GetAnalyzedDataFunction,
     LocalSource,
+    type RemoteSource,
+    type RemoteSources,
     type Source,
     VisualizationMode,
     WebSocketSource,

@@ -14,5 +14,16 @@ export type GetAnalyzedDataFunction = () => AnalyzedData | undefined;
 
 export interface Source {
     getId(): string;
+
     getAnalyzedData(): AnalyzedData | undefined;
+}
+
+export interface RemoteSources {
+    sources: RemoteSource[];
+}
+
+export interface RemoteSource {
+    label: string;
+    type: string;
+    url: string;
 }

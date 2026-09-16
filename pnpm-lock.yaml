@@ -26,6 +26,9 @@ importers:
       knip:
         specifier: 6.35.1
         version: 6.35.1
+      ky:
+        specifier: 2.1.0
+        version: 2.1.0
       lit:
         specifier: 3.3.3
         version: 3.3.3
@@ -1264,6 +1267,10 @@ packages:
 
   kolorist@1.8.0:
     resolution: {integrity: sha512-Y+60/zizpJ3HRH8DCss+q95yr6145JXZo46OTpFvDZWLfRCE4qChOyk1b26nMaNpfHHgxagk9dXT5OP0Tfe+dQ==}
+
+  ky@2.1.0:
+    resolution: {integrity: sha512-nIKwelw+7qVqKOlX4Eht6GXfEXlDHcdIjyLWV3s119kYt5s+70ayTnYS+0fRNmtgGRRAfqdeWQbh8YizqkS0ng==}
+    engines: {node: '>=22'}
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -3118,6 +3125,8 @@ snapshots:
       zod: 4.6.2
 
   kolorist@1.8.0: {}
+
+  ky@2.1.0: {}
 
   levn@0.4.1:
     dependencies:
