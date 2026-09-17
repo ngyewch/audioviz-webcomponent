@@ -1,6 +1,7 @@
 import {LitElement, html, css, TemplateResult, PropertyValues} from 'lit';
 import {customElement, property, query, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
+import {when} from 'lit/directives/when.js';
 import ky from 'ky';
 
 import {type RemoteSources, type Source, VisualizationMode} from './types.js';
@@ -60,10 +61,13 @@ export class AudioVizPanelElement extends LitElement {
     public dbRangeMax: number = 0;
 
     @property({type: Array})
-    public colors: string[] | undefined = undefined;
+    public colors: string[] | null | undefined = undefined;
 
     @property({type: String})
-    public elementHeight: string = '320px';
+    public elementHeight: string | null | undefined = undefined;
+
+    @state()
+    private _remoteSources: RemoteSources | undefined = undefined;
 
     @state()
     private _sourceEntries: SourceEntry[] = [];
@@ -94,6 +98,7 @@ export class AudioVizPanelElement extends LitElement {
                 ky.get(this.url)
                     .then(response => response.json<RemoteSources>())
                     .then(remoteSources => {
+                        this._remoteSources = remoteSources;
                         this._sourceEntries = [];
                         for (const remoteSource of remoteSources.sources) {
                             switch (remoteSource.type) {
@@ -133,6 +138,14 @@ export class AudioVizPanelElement extends LitElement {
                                         dbRangeMax="${this.dbRangeMax}">
                     </audio-viz-settings>
                 </div>
+                ${when(
+                    this._remoteSources !== undefined,
+                        () => html`
+                            <div class="section">
+                                Sample rate: ${this._remoteSources?.sampleRate} Hz / Channel count: ${this._remoteSources?.sources?.length} / FFT size: ${this._remoteSources?.nfft}
+                            </div>
+                        `,
+                )}
                 ${repeat(
                         this._sourceEntries,
                         (sourceEntry) => sourceEntry.source.getId(),
@@ -144,7 +157,7 @@ export class AudioVizPanelElement extends LitElement {
                                            minDb="${this.minDb}"
                                            maxDb="${this.maxDb}"
                                            colors="${this.colors}"
-                                           style="width: 100%; height: ${this.elementHeight};">
+                                           style="width: 100%; height: ${this.getElementHeight()};">
                                 </audio-viz>
                             </div>
                         `,
@@ -190,5 +203,16 @@ export class AudioVizPanelElement extends LitElement {
             }
         }
         this._childElements = childElements;
+    }
+
+    private getElementHeight(): string {
+        if ((this.elementHeight !== undefined) && (this.elementHeight !== null)) {
+            return this.elementHeight;
+        }
+        if (this._remoteSources !== undefined) {
+            const elementHeight = (this._remoteSources.nfft / 2) + 1;
+            return `${elementHeight}px`;
+        }
+        return '320px';
     }
 }

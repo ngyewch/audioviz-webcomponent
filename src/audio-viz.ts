@@ -28,7 +28,7 @@ export class AudioVizElement extends LitElement {
     public mode: VisualizationMode = VisualizationMode.Waveform;
 
     @property({type: Array})
-    public colors: string[] | undefined = undefined;
+    public colors: string[] | null | undefined = undefined;
 
     @property({type: Number})
     public minDb: number = -120;
@@ -37,7 +37,7 @@ export class AudioVizElement extends LitElement {
     public maxDb: number = 0;
 
     @property({type: Function})
-    public getAnalyzedData: GetAnalyzedDataFunction | undefined = undefined;
+    public getAnalyzedData: GetAnalyzedDataFunction | null | undefined = undefined;
 
     @query('#canvas')
     private _canvasElement!: HTMLCanvasElement;
@@ -132,7 +132,7 @@ export class AudioVizElement extends LitElement {
             this._modeChanged = false;
         }
 
-        const analyzedData = (this.getAnalyzedData !== undefined) ? this.getAnalyzedData() : undefined;
+        const analyzedData = (this.getAnalyzedData !== undefined) && (this.getAnalyzedData !== null) ? this.getAnalyzedData() : undefined;
         if (analyzedData !== undefined) {
             switch (this.mode) {
                 case VisualizationMode.Waveform:

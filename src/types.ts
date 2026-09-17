@@ -19,6 +19,8 @@ export interface Source {
 }
 
 export interface RemoteSources {
+    sampleRate: number;
+    nfft: number;
     sources: RemoteSource[];
 }
 
