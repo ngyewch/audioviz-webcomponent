@@ -104,7 +104,13 @@ export class AudioVizPanelElement extends LitElement {
                             switch (remoteSource.type) {
                                 case 'ws':
                                 case 'websocket': {
-                                    const source = new WebSocketSource(new URL(remoteSource.url, this.url).href);
+                                    let url = remoteSource.url;
+                                    try {
+                                        url = new URL(remoteSource.url, this.url).href;
+                                    } catch (e) {
+                                        // ignore exception
+                                    }
+                                    const source = new WebSocketSource(url);
                                     this._sourceEntries.push({
                                         label: remoteSource.label,
                                         source: source,
