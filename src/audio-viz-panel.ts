@@ -106,7 +106,7 @@ export class AudioVizPanelElement extends LitElement {
                                 case 'websocket': {
                                     let url = remoteSource.url;
                                     try {
-                                        url = new URL(remoteSource.url, this.url).href;
+                                        url = new URL(remoteSource.url, new URL(this.url!, window.location.href)).href;
                                     } catch (e) {
                                         // ignore exception
                                     }
