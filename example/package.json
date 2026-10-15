@@ -14,23 +14,23 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@sveltejs/vite-plugin-svelte": "7.3.0",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@tsconfig/svelte": "5.0.8",
-    "@types/node": "24.13.3",
+    "@types/node": "24.19.2",
     "eslint": "10.12.0",
     "globals": "17.13.0",
     "knip": "6.41.0",
-    "sass-embedded": "1.104.0",
+    "sass-embedded": "1.105.1",
     "svelte-check": "4.7.6",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.71.1",
+    "typescript-eslint": "8.71.2",
     "vite": "8.3.4"
   },
   "dependencies": {
     "@stanko/dual-range-input": "1.0.1",
     "audioviz-webcomponent": "link:..",
     "bulma": "1.0.4",
-    "svelte": "5.57.0",
+    "svelte": "5.57.2",
     "viridis": "1.7.0"
   }
 }
