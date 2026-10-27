@@ -37,18 +37,18 @@
     "eslint": "10.13.0",
     "gh-pages": "6.3.0",
     "globals": "17.13.0",
-    "knip": "6.41.0",
+    "knip": "6.43.0",
     "ky": "2.2.0",
     "lit": "3.3.3",
     "throttleit": "3.0.0",
     "typedoc": "0.28.20",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.71.2",
+    "typescript-eslint": "8.72.0",
     "unplugin-dts": "1.1.2",
     "uuid": "14.0.3",
-    "validate-package-exports": "1.5.1",
+    "validate-package-exports": "1.6.0",
     "viridis": "1.7.0",
-    "vite": "8.3.4"
+    "vite": "8.3.5"
   },
   "dependencies": {
   },
