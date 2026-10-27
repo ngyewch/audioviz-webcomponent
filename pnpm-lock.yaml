@@ -50,6 +50,9 @@ importers:
       unplugin-dts:
         specifier: 1.1.2
         version: 1.1.2(@microsoft/api-extractor@7.59.4)(rolldown@1.2.13)(supports-color@8.1.1)(typescript@6.0.3)(vite@8.3.4(jiti@2.7.0)(yaml@2.9.0))
+      uuid:
+        specifier: 14.0.3
+        version: 14.0.3
       validate-package-exports:
         specifier: 1.5.1
         version: 1.5.1(supports-color@8.1.1)
@@ -1908,6 +1911,10 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  uuid@14.0.3:
+    resolution: {integrity: sha512-Sc5u1VVln93y1Xnz4R+CunOZc7R9LUcTmhj7Rc7Eg3HVcf7rVn2FOoa812fe0W8p3jD7xeoGSYbfqCGGH2B6xw==}
+    hasBin: true
 
   validate-npm-package-name@8.0.0:
     resolution: {integrity: sha512-SCv6OOV6Xj2/3cXy3dGmADluJTNcL3o7hZAglNPTe+WYuEuvxgJzxPrSDLZhF+CwyQOubqgecjMmTJGMVLWjYQ==}
@@ -3866,6 +3873,8 @@ snapshots:
       punycode: 2.3.1
 
   util-deprecate@1.0.2: {}
+
+  uuid@14.0.3: {}
 
   validate-npm-package-name@8.0.0: {}
 

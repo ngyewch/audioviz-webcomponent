@@ -1,3 +1,5 @@
+import {v4 as uuidv4} from 'uuid';
+
 import {AnalyzedData, type Source} from './types.js';
 
 export class WebSocketSource implements Source {
@@ -6,7 +8,7 @@ export class WebSocketSource implements Source {
     private analyzedData: AnalyzedData | undefined;
 
     constructor(public readonly url: string) {
-        this.id = crypto.randomUUID();
+        this.id = uuidv4();
         this.ws = new WebSocket(url);
         this.ws.onmessage = this.handleMessage.bind(this);
     }

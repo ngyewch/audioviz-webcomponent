@@ -1,3 +1,5 @@
+import {v4 as uuidv4} from 'uuid';
+
 import {type AnalyzedData, type Source} from './types.js';
 
 export class LocalSource implements Source {
@@ -8,7 +10,7 @@ export class LocalSource implements Source {
     private readonly floatFrequencyData: Float32Array<ArrayBuffer>;
 
     constructor(private readonly audioContext: AudioContext, readonly mediaStream: MediaStream, readonly fftSize: number) {
-        this.id = crypto.randomUUID();
+        this.id = uuidv4();
         this.audioSource = new MediaStreamAudioSourceNode(audioContext, {
             mediaStream: mediaStream,
         })
